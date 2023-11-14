@@ -4,7 +4,7 @@ from typing import Any, Optional, Union
 
 import requests
 
-from . import ConfigurationError
+from . import ConfigurationError, APIResponseError
 
 
 VERCEL_API_URL = "https://blob.vercel-storage.com"
@@ -28,6 +28,12 @@ def _coerce_bool(value):
     return str(int(bool(value)))
 
 
+def _handle_response(response: requests.Response):
+    if response.status_code == 200:
+        return response.json()
+    raise APIResponseError(f"Oops, something went wrong: {response.json()}")
+
+
 def put(pathname: str, body: bytes, options: Optional[dict] = None) -> dict:
     _opts = dict(options) if options else dict()
     headers = {
@@ -41,10 +47,12 @@ def put(pathname: str, body: bytes, options: Optional[dict] = None) -> dict:
         ),
     }
     _resp = requests.put(f"{VERCEL_API_URL}/{pathname}", data=body, headers=headers)
-    return _resp.json()
+    return _handle_response(_resp)
 
 
-def delete(url: Union[str, list[str], tuple[str]], options: Optional[dict] = None) -> dict:
+def delete(
+    url: Union[str, list[str], tuple[str]], options: Optional[dict] = None
+) -> dict:
     """
     Deletes a blob object from the Blob store.
     Args:
@@ -65,15 +73,18 @@ def delete(url: Union[str, list[str], tuple[str]], options: Optional[dict] = Non
         "x-api-version": API_VERSION,
         "content-type": "application/json",
     }
-    _resp = requests.delete(
+    _resp = requests.post(
         f"{VERCEL_API_URL}/delete",
         json={
-            "urls": [url, ]
+            "urls": [
+                url,
+            ]
             if isinstance(url, str)
             else url
         },
         headers=headers,
     )
+    return _handle_response(_resp)
 
 
 def list(options: Optional[dict] = None) -> Any:
@@ -101,4 +112,4 @@ def list(options: Optional[dict] = None) -> Any:
         f"{VERCEL_API_URL}",
         headers=headers,
     )
-    return _resp.json()
+    return _handle_response(_resp)
