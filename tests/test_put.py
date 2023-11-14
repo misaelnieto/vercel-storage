@@ -1,5 +1,5 @@
 from requests_mock import Mocker
-import vercel_storage
+from vercel_storage import blob
 
 
 def test_blob_upload(requests_mock: Mocker):
@@ -17,7 +17,7 @@ def test_blob_upload(requests_mock: Mocker):
         json=response_payload
     )
 
-    resp = vercel_storage.put(
+    resp = blob.put(
         pathname=file_path,
         body=b'loremipsum',
         options={'token': 'ABCD123foobar'}
