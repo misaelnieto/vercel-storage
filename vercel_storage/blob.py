@@ -29,7 +29,7 @@ def _coerce_bool(value):
 
 
 def _handle_response(response: requests.Response):
-    if response.status_code == 200:
+    if str(response.status_code) == '200':
         return response.json()
     raise APIResponseError(f"Oops, something went wrong: {response.json()}")
 

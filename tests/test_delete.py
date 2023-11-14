@@ -2,9 +2,10 @@ from requests_mock import Mocker
 from vercel_storage import blob
 
 def test_blob_delete(requests_mock: Mocker):
-    requests_mock.delete(
+    requests_mock.post(
         url='https://blob.vercel-storage.com/delete',
-        status_code='200'
+        status_code=200,
+        json={}
     )
 
     blob.delete(
