@@ -113,3 +113,31 @@ def list(options: Optional[dict] = None) -> Any:
         headers=headers,
     )
     return _handle_response(_resp)
+
+
+def head(url: str, options: Optional[dict] = None) -> dict:
+    """
+    Returns a blob object's metadata.
+
+    Args:
+        url: (Required) A string specifying the unique URL of the blob object to read
+        options (dict): A dict with the following optional parameter:
+            token (Not required) A string specifying the read-write token to
+                  use when making requests. It defaults to the BLOB_READ_WRITE_TOKEN
+                  environment variable when deployed on Vercel as explained
+                  in Read-write token
+
+    Returns:
+        dict: with the blob's metadata. Throws an error if the blob is not found
+    """
+    _opts = dict(options) if options else dict()
+    headers = {
+        "authorization": f"Bearer {get_token(_opts)}",
+        "x-api-version": API_VERSION,
+    }
+    _resp = requests.get(
+        f"{VERCEL_API_URL}",
+        headers=headers,
+        params={'url': url}
+    )
+    return _handle_response(_resp)
