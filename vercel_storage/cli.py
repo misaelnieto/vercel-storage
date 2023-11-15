@@ -1,4 +1,6 @@
 import sys
+import urllib.parse
+
 import click
 from tabulate import tabulate
 
@@ -72,6 +74,17 @@ def head(ctx: click.Context, url:str):
     else:
         click.echo(tabulate([(k,v) for k,v in resp.items()]))
 
+
+@cli.command
+@click.pass_context
+@click.argument("from_url", required=True, type=click.STRING)
+@click.argument("to_pathname", required=True, type=click.STRING)
+def copy(ctx: click.Context, from_url:str, to_pathname:str):
+    resp = blob.copy(from_url, to_pathname, options={"token": ctx.obj["token"]})
+    if ctx.obj["print_json"]:
+        click.echo(resp)
+    else:
+        click.echo(tabulate([(k,v) for k,v in resp.items()]))
 
 if __name__ == "__main__":
     cli()
