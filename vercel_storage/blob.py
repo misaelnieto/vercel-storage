@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from os import getenv
 from typing import Any, Optional, Union
 from mimetypes import guess_type
@@ -14,7 +13,7 @@ TOKEN_ENV = "BLOB_READ_WRITE_TOKEN"
 API_VERSION = "4"
 DEFAULT_CACHE_AGE = 365 * 24 * 60 * 60  # 1 Year
 DEFAULT_ACCESS = "public"
-
+DEFAULT_PAGE_SIZE = 100
 
 
 def guess_mime_type(url):
@@ -104,10 +103,17 @@ def list(options: Optional[dict] = None) -> Any:
                   use when making requests. It defaults to the BLOB_READ_WRITE_TOKEN
                   environment variable when deployed on Vercel as explained
                   in Read-write token
-            limit
-            prefix
-            cursor
-            mode
+            limit (Not required): A number specifying the maximum number of 
+                blob objects to return. It defaults to 1000
+            prefix (Not required): A string used to filter for blob objects
+                contained in a specific folder assuming that the folder name was
+                used in the pathname when the blob object was uploaded
+            cursor (Not required): A string obtained from a previous response for pagination 
+                of retults
+            mode (Not required): A string specifying the response format. Can 
+                either be "expanded" (default) or "folded". In folded mode 
+                all blobs that are located inside a folder will be folded into
+                a single folder string entry
 
     Returns:
         ???
@@ -115,7 +121,15 @@ def list(options: Optional[dict] = None) -> Any:
     _opts = dict(options) if options else dict()
     headers = {
         "authorization": f"Bearer {get_token(_opts)}",
+        "limit": _opts.get('limit', DEFAULT_PAGE_SIZE),
     }
+    if 'prefix' in _opts:
+        headers['prefix'] = _opts['prefix']
+    if 'cursor' in _opts:
+        headers['cursor'] = _opts['cursor']
+    if 'mode' in _opts:
+        headers['mode'] = _opts['mode']
+
     _resp = requests.get(
         f"{VERCEL_API_URL}",
         headers=headers,
