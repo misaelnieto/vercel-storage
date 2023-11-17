@@ -12,7 +12,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pip install -e '.[test]'",
+	"postCreateCommand": "pip install -e '.[test]'"
 
 	// Configure tool-specific properties.
 	// "customizations": {},

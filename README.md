@@ -45,25 +45,77 @@ export BLOB_READ_WRITE_TOKEN="vercel_blob_rw_ABC1234XYz"
 ### Put operation
 
 ```sh
-vercel_storage blob upload path/to/file.zip
+$ vercel_blob put disk_dump.bin
+------------------  ----------------------------------------------------------------------------------------------------
+url                 https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/disk_dump-OTgBsduT0QQcfXImNMZky1NSy3HfML.bin
+pathname            disk_dump.bin
+contentType         application/octet-stream
+contentDisposition  attachment; filename="disk_dump.bin"
+------------------  ----------------------------------------------------------------------------------------------------
 ```
 
 You can also print the output information as a json:
 
 ```sh
-vercel_storage --json blob upload path/to/file.zip
+$ vercel_blob --json put disk_dump.bin
+{'url': 'https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/disk_dump-0eX9NYJnZjO31GsDiwDaQ6TR9QnWkH.bin', 'pathname': 'disk_dump.bin', 'contentType': 'text/plain', 'contentDisposition': 'attachment; filename="disk_dump.bin"'}
 ```
+
+By default, Vercel's blob store will insert a randomly generated string to the name of your file. But you can turn off that feature:
+
+```sh
+$ vercel_blob put --no-suffix chart.png 
+------------------  -----------------------------------------------------------------
+url                 https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/chart.png
+pathname            chart.png
+contentType         image/png
+contentDisposition  attachment; filename="chart.png"
+------------------  -----------------------------------------------------------------
+```
+
+### List operation
+
+The list method returns a list of blob objects in a Blob store. For example, let's upload a file to the bob store:
+
+```sh
+vercel_blob put profile.png 
+------------------  --------------------------------------------------------------------------------------------------
+url                 https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/profile-OtpJ1AUIxChAA6UZejVXPA1pkuBw2D.png
+pathname            profile.png
+contentType         image/png
+contentDisposition  attachment; filename="profile.png"
+------------------  --------------------------------------------------------------------------------------------------
+```
+
+Now you can see your file on your blob store:
+
+```sh
+vercel_blob list
+Path name      Size in bytes  url
+-----------  ---------------  -------------------------------------------------------------------
+profile.png            11211  https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/profile-OtpJ1AUIxChAA6UZejVXPA1pkuBw2D.png
+```
+
 
 ### Copy operation
 
 ```sh
-vercel_storage blob copy <blob url> new/file/path/file.zip
+$ vercel_blob copy https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/disk_dump-0eX9NYJnZjO31GsDiwDaQ6TR9QnWkH.bin file.zip
+
+------------------  ----------------------------------------------------------------
+url                 https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/file.zip
+pathname            file.zip
+contentType         application/octet-stream
+contentDisposition  attachment; filename="file.zip"
+------------------  ----------------------------------------------------------------
+
 ```
 
 You can also print the output information as a json:
 
 ```sh
-vercel_storage --json copy <blob url> new/file/path/file.zip
+$ vercel_blob --json copy https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/disk_dump-0eX9NYJnZjO31GsDiwDaQ6TR9QnWkH.bin file.zip
+{'url': 'https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/file.zip', 'pathname': 'file.zip', 'contentType': 'application/octet-stream', 'contentDisposition': 'attachment; filename="file.zip"'}
 ```
 
 ### Delete operation
@@ -71,10 +123,48 @@ vercel_storage --json copy <blob url> new/file/path/file.zip
 The delete operation always suceeds, regardless of whether the blob exists or not. It returns a null payload.
 
 ```sh
-vercel_storage blob delete <blob url>
+$ vercel_blob delete https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/disk_dump-mSjTcLOIg8hlGNiWpWMUcGqVll1uST.bin
 ```
 
+### Head operation
+
+The head operation returns a blob object's metadata.
+
+
+```sh
+$ vercel_blob head https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/file.zip
+------------------  ----------------------------------------------------------------
+url                 https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/file.zip
+pathname            file.zip
+contentType         application/octet-stream
+contentDisposition  attachment; filename="file.zip"
+uploadedAt          2023-11-16T23:53:25.000Z
+size                1998
+cacheControl        public, max-age=31536000, s-maxage=300
+------------------  ----------------------------------------------------------------
+```
+
+As with the other commands, you can generate json output:
+
+```sh
+$ vercel_blob --json head https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/file.zip
+{'url': 'https://c6zu0uktwgrh0d3g.public.blob.vercel-storage.com/file.zip', 'pathname': 'file.zip', 'contentType': 'application/octet-stream', 'contentDisposition': 'attachment; filename="file.zip"', 'uploadedAt': '2023-11-16T23:53:25.000Z', 'size': 1998, 'cacheControl': 'public, max-age=31536000, s-maxage=300'}
+```
+
+
 ## Using vercel_storage in your python code
+
+### List operation
+
+Note: `vercel_storage` will look for the `BLOB_READ_WRITE_TOKEN` environment variable. If it is not available
+it will raise an Exception.
+
+If you have the token stored somewhere else, you can pass it directly to the put() function like this:
+
+
+```python
+    resp = blob.list(options={'token': 'ABCD123foobar'})
+```
 
 ### Put operation
 
@@ -89,7 +179,7 @@ with open(my_file, 'rb') as fp:
     )
 ```
 
-`vercel_storage` will look for the `BLOB_READ_WRITE_TOKEN` environment variable. If it is not available
+Note: `vercel_storage` will look for the `BLOB_READ_WRITE_TOKEN` environment variable. If it is not available
 it will raise an Exception.
 
 If you have the token stored somewhere else, you can pass it directly to the put() function like this:
