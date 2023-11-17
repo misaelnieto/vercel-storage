@@ -30,7 +30,7 @@ def get_token(options: dict):
 
 def dump_headers(options: dict, headers: dict):
     if options.get("debug", False):
-        print(tabulate([(k,v) for k,v in headers.items()]))
+        print(tabulate([(k, v) for k, v in headers.items()]))
 
 
 def _coerce_bool(value):
@@ -38,7 +38,7 @@ def _coerce_bool(value):
 
 
 def _handle_response(response: requests.Response):
-    if str(response.status_code) == '200':
+    if str(response.status_code) == "200":
         return response.json()
     raise APIResponseError(f"Oops, something went wrong: {response.json()}")
 
@@ -77,7 +77,7 @@ def delete(
                   in Read-write token
 
     Returns:
-        None: A delete action is always successful if the blob url exists. 
+        None: A delete action is always successful if the blob url exists.
               A delete action won't throw if the blob url doesn't exists.
     """
     _opts = dict(options) if options else dict()
@@ -110,32 +110,32 @@ def list(options: Optional[dict] = None) -> Any:
                   use when making requests. It defaults to the BLOB_READ_WRITE_TOKEN
                   environment variable when deployed on Vercel as explained
                   in Read-write token
-            limit (Not required): A number specifying the maximum number of 
+            limit (Not required): A number specifying the maximum number of
                 blob objects to return. It defaults to 1000
             prefix (Not required): A string used to filter for blob objects
                 contained in a specific folder assuming that the folder name was
                 used in the pathname when the blob object was uploaded
-            cursor (Not required): A string obtained from a previous response for pagination 
+            cursor (Not required): A string obtained from a previous response for pagination
                 of retults
-            mode (Not required): A string specifying the response format. Can 
-                either be "expanded" (default) or "folded". In folded mode 
+            mode (Not required): A string specifying the response format. Can
+                either be "expanded" (default) or "folded". In folded mode
                 all blobs that are located inside a folder will be folded into
                 a single folder string entry
 
     Returns:
-        ???
+        Json response
     """
     _opts = dict(options) if options else dict()
     headers = {
         "authorization": f"Bearer {get_token(_opts)}",
-        "limit": _opts.get('limit', DEFAULT_PAGE_SIZE),
+        "limit": _opts.get("limit", str(DEFAULT_PAGE_SIZE)),
     }
-    if 'prefix' in _opts:
-        headers['prefix'] = _opts['prefix']
-    if 'cursor' in _opts:
-        headers['cursor'] = _opts['cursor']
-    if 'mode' in _opts:
-        headers['mode'] = _opts['mode']
+    if "prefix" in _opts:
+        headers["prefix"] = _opts["prefix"]
+    if "cursor" in _opts:
+        headers["cursor"] = _opts["cursor"]
+    if "mode" in _opts:
+        headers["mode"] = _opts["mode"]
 
     dump_headers(options, headers)
     _resp = requests.get(
@@ -166,11 +166,7 @@ def head(url: str, options: Optional[dict] = None) -> dict:
         "x-api-version": API_VERSION,
     }
     dump_headers(options, headers)
-    _resp = requests.get(
-        f"{VERCEL_API_URL}",
-        headers=headers,
-        params={'url': url}
-    )
+    _resp = requests.get(f"{VERCEL_API_URL}", headers=headers, params={"url": url})
     return _handle_response(_resp)
 
 
@@ -178,12 +174,12 @@ def copy(from_url: str, to_pathname: str, options: Optional[dict] = None) -> dic
     """
     Copies an existing blob object to a new path inside the blob store.
 
-    The contentType and cacheControlMaxAge will not be copied from the source 
-    blob. If the values should be carried over to the copy, they need to be 
+    The contentType and cacheControlMaxAge will not be copied from the source
+    blob. If the values should be carried over to the copy, they need to be
     defined again in the options object.
 
-    Contrary to put(), addRandomSuffix is false by default. This means no 
-    automatic random id suffix is added to your blob url, unless you pass 
+    Contrary to put(), addRandomSuffix is false by default. This means no
+    automatic random id suffix is added to your blob url, unless you pass
     addRandomSuffix: True. This also means copy() overwrites files per default,
     if the operation targets a pathname that already exists.
 
@@ -196,12 +192,12 @@ def copy(from_url: str, to_pathname: str, options: Optional[dict] = None) -> dic
                   use when making requests. It defaults to the BLOB_READ_WRITE_TOKEN
                   environment variable when deployed on Vercel as explained
                   in Read-write token
-            contentType (Not required): A string indicating the media type. 
+            contentType (Not required): A string indicating the media type.
                 By default, it's extracted from the to_pathname's extension.
             addRandomSuffix (Not required): A boolean specifying whether to add
                 a random suffix to the pathname. It defaults to False.
             cacheControlMaxAge (Not required): A number in seconds to configure
-                the edge and browser cache. Defaults to one year. See Vercel's 
+                the edge and browser cache. Defaults to one year. See Vercel's
                 caching documentation for more details.
     """
     _opts = dict(options) if options else dict()
@@ -217,8 +213,7 @@ def copy(from_url: str, to_pathname: str, options: Optional[dict] = None) -> dic
     }
     dump_headers(options, headers)
     _to = urllib.parse.quote(to_pathname)
-    resp = requests.put(f"{VERCEL_API_URL}/{_to}", headers=headers, params={
-        'fromUrl': from_url
-    })
+    resp = requests.put(
+        f"{VERCEL_API_URL}/{_to}", headers=headers, params={"fromUrl": from_url}
+    )
     return _handle_response(resp)
-
