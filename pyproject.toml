@@ -41,7 +41,6 @@ packaging = [
 ]
 
 [project.scripts]
-flit = "flit:main"
 vercel_blob = "vercel_storage.cli:cli"
 
 [tool.pytest.ini_options]
