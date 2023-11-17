@@ -4,6 +4,7 @@ from mimetypes import guess_type
 import urllib.parse
 
 import requests
+from tabulate import tabulate
 
 from . import ConfigurationError, APIResponseError
 
@@ -21,13 +22,15 @@ def guess_mime_type(url):
 
 
 def get_token(options: dict):
-    if not options or not isinstance(options, dict):
-        _tkn = getenv(TOKEN_ENV, None)
-    else:
-        _tkn = options.get("token", None)
+    _tkn = options.get("token", getenv(TOKEN_ENV, None))
     if not _tkn:
         raise ConfigurationError("Vercel's BLOB_READ_WRITE_TOKEN is not set")
     return _tkn
+
+
+def dump_headers(options: dict, headers: dict):
+    if options.get("debug", False):
+        print(tabulate([(k,v) for k,v in headers.items()]))
 
 
 def _coerce_bool(value):
@@ -46,12 +49,15 @@ def put(pathname: str, body: bytes, options: Optional[dict] = None) -> dict:
         "access": "public",
         "authorization": f"Bearer {get_token(_opts)}",
         "x-api-version": API_VERSION,
-        "x-content-type": _opts.get("contentType", "text/plain"),
-        "x-add-random-suffix": _coerce_bool(_opts.get("addRandomSuffix", True)),
+        "x-content-type": guess_mime_type(pathname),
         "x-cache-control-max-age": _opts.get(
             "cacheControlMaxAge", str(DEFAULT_CACHE_AGE)
         ),
     }
+    if "no_suffix" in options:
+        headers["x-add-random-suffix"] = "false"
+
+    dump_headers(options, headers)
     _resp = requests.put(f"{VERCEL_API_URL}/{pathname}", data=body, headers=headers)
     return _handle_response(_resp)
 
@@ -80,6 +86,7 @@ def delete(
         "x-api-version": API_VERSION,
         "content-type": "application/json",
     }
+    dump_headers(options, headers)
     _resp = requests.post(
         f"{VERCEL_API_URL}/delete",
         json={
@@ -130,6 +137,7 @@ def list(options: Optional[dict] = None) -> Any:
     if 'mode' in _opts:
         headers['mode'] = _opts['mode']
 
+    dump_headers(options, headers)
     _resp = requests.get(
         f"{VERCEL_API_URL}",
         headers=headers,
@@ -157,6 +165,7 @@ def head(url: str, options: Optional[dict] = None) -> dict:
         "authorization": f"Bearer {get_token(_opts)}",
         "x-api-version": API_VERSION,
     }
+    dump_headers(options, headers)
     _resp = requests.get(
         f"{VERCEL_API_URL}",
         headers=headers,
@@ -206,8 +215,10 @@ def copy(from_url: str, to_pathname: str, options: Optional[dict] = None) -> dic
             "cacheControlMaxAge", str(DEFAULT_CACHE_AGE)
         ),
     }
+    dump_headers(options, headers)
     _to = urllib.parse.quote(to_pathname)
     resp = requests.put(f"{VERCEL_API_URL}/{_to}", headers=headers, params={
         'fromUrl': from_url
     })
     return _handle_response(resp)
+
