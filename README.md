@@ -1,4 +1,5 @@
-# vercel-blob
+# vercel-storage
+
 A wrapper around the vercel blob api
 
 
