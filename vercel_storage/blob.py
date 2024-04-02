@@ -54,7 +54,7 @@ def put(pathname: str, body: bytes, options: Optional[dict] = None) -> dict:
             "cacheControlMaxAge", str(DEFAULT_CACHE_AGE)
         ),
     }
-    if "no_suffix" in options:
+    if options and "no_suffix" in options:
         headers["x-add-random-suffix"] = "false"
 
     dump_headers(options, headers)
