@@ -29,6 +29,8 @@ def get_token(options: dict):
 
 
 def dump_headers(options: Optional[dict], headers: dict):
+    if options is None:
+        options = {}
     if options.get("debug", False):
         print(tabulate([(k, v) for k, v in headers.items()]))
 
