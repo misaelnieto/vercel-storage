@@ -28,7 +28,9 @@ def get_token(options: dict):
     return _tkn
 
 
-def dump_headers(options: dict, headers: dict):
+def dump_headers(options: Optional[dict], headers: dict):
+    if options is None:
+        options = {}
     if options.get("debug", False):
         print(tabulate([(k, v) for k, v in headers.items()]))
 
@@ -54,7 +56,7 @@ def put(pathname: str, body: bytes, options: Optional[dict] = None) -> dict:
             "cacheControlMaxAge", str(DEFAULT_CACHE_AGE)
         ),
     }
-    if "no_suffix" in options:
+    if options and "no_suffix" in options:
         headers["x-add-random-suffix"] = "false"
 
     dump_headers(options, headers)
