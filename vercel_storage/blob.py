@@ -125,7 +125,18 @@ def list(options: Optional[dict] = None) -> Any:
                 a single folder string entry
 
     Returns:
-        Json response
+        Json response with the following format:
+
+        blobs: {
+            size: `number`;
+            uploadedAt: `Date`;
+            pathname: `string`;
+            url: `string`;
+            downloadUrl: `string`
+        }[]
+        cursor?: `string`;
+        hasMore: `boolean`;
+        folders?: `string[]`
     """
     _opts = dict(options) if options else dict()
     headers = {
