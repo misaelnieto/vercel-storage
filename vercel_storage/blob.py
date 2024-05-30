@@ -127,16 +127,10 @@ def list(options: Optional[dict] = None) -> Any:
     Returns:
         Json response with the following format:
 
-        blobs: {
-            size: `number`;
-            uploadedAt: `Date`;
-            pathname: `string`;
-            url: `string`;
-            downloadUrl: `string`
-        }[]
-        cursor?: `string`;
-        hasMore: `boolean`;
-        folders?: `string[]`
+        blobs: A list of blobs
+        cursor: (Optional) You get this if you are doing pagination
+        hasMore: boolean
+        folders: A list of strings.
     """
     _opts = dict(options) if options else dict()
     headers = {
